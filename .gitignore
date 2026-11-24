@@ -1,0 +1,24 @@
+# Dependencias y build (se regeneran con npm install / npm run build)
+node_modules/
+dist/
+
+# Sistema y editor
+.DS_Store
+*.log
+.vscode/
+.idea/
+
+# Variables de entorno (por si algún día se agregan)
+.env
+.env.*
+
+# --- Harness de agentes (de gitignore.snippet) ---
+# El workspace guarda los traspasos de cada tarea y rutas locales: nunca se commitea, salvo su README.
+.claude/workspace/*
+!.claude/workspace/README.md
+
+# Overrides personales
+.claude/settings.local.json
+.claude/CLAUDE.local.md
+
+# .claude/agent-memory/ SÍ se commitea: es conocimiento compartido del harness.

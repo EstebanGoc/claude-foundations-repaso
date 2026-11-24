@@ -1,0 +1,31 @@
+#!/bin/sh
+# Pre-commit guards. Registered by `python init.py` via core.hooksPath=.githooks.
+# They also protect commits made by hand, not only the ones an agent makes.
+#
+# Bypass everything with --no-verify when you genuinely must.
+ROOT=$(git rev-parse --show-toplevel)
+
+# Find a python that actually RUNS, not merely one that resolves on PATH. On
+# Windows `command -v python3` can return the Microsoft Store alias, which is not
+# an interpreter and would fail every commit.
+PY=""
+for candidate in python3 python py; do
+    if command -v "$candidate" >/dev/null 2>&1 && "$candidate" -c "" >/dev/null 2>&1; then
+        PY=$candidate
+        break
+    fi
+done
+
+# Cheap guards first: a leaked secret should fail in a second, not after a test suite.
+if [ -n "$PY" ]; then
+    "$PY" "$ROOT/.claude/hooks/secret-guard.py" || exit 1
+else
+    echo "pre-commit: no working python found, skipping secret guard" >&2
+fi
+
+# CUSTOMISE: fast tests scoped to the staged diff, for example:
+# if git diff --cached --name-only | grep -q '^frontend/'; then
+#     (cd "$ROOT/frontend" && npm run test:run) || exit 1
+# fi
+
+exit 0

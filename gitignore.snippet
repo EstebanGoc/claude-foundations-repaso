@@ -1,0 +1,13 @@
+# --- Agent harness (copy into your .gitignore) ---
+# The workspace holds per-task handoff files and is never committed, except its
+# README. Ignore the CONTENTS (workspace/*), not the folder itself: git cannot
+# re-include a file inside an ignored directory, so `.claude/workspace/` plus a
+# negation would silently drop the README.
+.claude/workspace/*
+!.claude/workspace/README.md
+
+# Personal overrides stay local.
+.claude/settings.local.json
+.claude/CLAUDE.local.md
+
+# .claude/agent-memory/ IS committed: it is shared team knowledge.
