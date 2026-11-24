@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { questions } from "../../data/questions.js";
-import { FEEDBACK_MS, buildDeck, score } from "../game.js";
+import { buildDeck, score } from "../game.js";
 import GameCard, { Code } from "./GameCard.jsx";
 
 const counts = questions.reduce((acc, q) => ({ ...acc, [q.domainId]: (acc[q.domainId] ?? 0) + 1 }), {});
@@ -15,7 +15,6 @@ export default function Game({ domains }) {
   const [answers, setAnswers] = useState([]);
   const [feedback, setFeedback] = useState(null); // null | { side, isCorrect }
   const lockedRef = useRef(false);
-  const timerRef = useRef();
   const titleRef = useRef();
 
   const withQuestions = domains.filter((d) => counts[d.id]);
@@ -30,10 +29,8 @@ export default function Game({ domains }) {
   useEffect(() => {
     titleRef.current?.focus();
   }, [phase]);
-  useEffect(() => () => clearTimeout(timerRef.current), []);
 
   function start() {
-    clearTimeout(timerRef.current);
     lockedRef.current = false;
     setDeck(buildDeck(questions, selected));
     setIndex(0);
@@ -49,19 +46,21 @@ export default function Game({ domains }) {
     const isCorrect = side === q.correctSide;
     setAnswers((a) => [...a, { question: q, isCorrect }]);
     setFeedback({ side, isCorrect });
-    timerRef.current = setTimeout(() => {
-      setFeedback(null);
-      if (index + 1 < deck.length) {
-        setIndex(index + 1);
-        lockedRef.current = false;
-      } else {
-        setPhase("results");
-      }
-    }, FEEDBACK_MS);
+  }
+
+  // Avanza tras el feedback; el foco va al h1 (el botón Siguiente desaparece) y la región status anuncia la pregunta.
+  function next() {
+    setFeedback(null);
+    if (index + 1 < deck.length) {
+      setIndex(index + 1);
+      lockedRef.current = false;
+      titleRef.current?.focus();
+    } else {
+      setPhase("results");
+    }
   }
 
   function finish() {
-    clearTimeout(timerRef.current);
     setFeedback(null);
     setPhase("results");
   }
@@ -69,6 +68,14 @@ export default function Game({ domains }) {
   useEffect(() => {
     if (phase !== "play") return;
     const onKey = (e) => {
+      if (e.key === "Enter") {
+        // Sobre un botón/campo manda la activación nativa (evita doble avance con "Siguiente" y no pisa "Terminar").
+        if (!feedback || e.repeat || e.altKey || e.ctrlKey || e.metaKey) return;
+        if (e.target.closest?.("button, a, input, textarea, select, [contenteditable]")) return;
+        e.preventDefault();
+        next();
+        return;
+      }
       const side = KEYS[e.key];
       if (!side || e.repeat || e.altKey || e.ctrlKey || e.metaKey) return;
       if (e.target.closest?.("input, textarea, select, [contenteditable]")) return;
@@ -79,9 +86,27 @@ export default function Game({ domains }) {
     return () => window.removeEventListener("keydown", onKey);
   });
 
+  const status =
+    phase !== "play"
+      ? ""
+      : !feedback
+        ? `Pregunta ${index + 1} de ${deck.length}: ${plain(q.question)}`
+        : feedback.isCorrect
+          ? `Correcto. ${plain(q.explanation)}`
+          : `Incorrecto. La correcta era: ${plain(q.correct)}. ${plain(q.explanation)}`;
+  // Fragment de 2 hijos fijos: la región status es el mismo nodo en las 3 fases y anuncia la pregunta 1 al empezar.
+  const shell = (content) => (
+    <>
+      {content}
+      <p className="sr-only" role="status">
+        {status}
+      </p>
+    </>
+  );
+
   if (phase === "select") {
     const toggle = (id) => setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
-    return (
+    return shell(
       <article className="game">
         <h1 ref={titleRef} tabIndex={-1}>
           Juego de cards
@@ -123,7 +148,8 @@ export default function Game({ domains }) {
   if (phase === "results") {
     const s = score(answers);
     const failed = answers.filter((a) => !a.isCorrect);
-    return (
+    const pl = s.correct === 1 ? "" : "s";
+    return shell(
       <article className="game">
         <h1 ref={titleRef} tabIndex={-1}>
           Resultados
@@ -148,7 +174,7 @@ export default function Game({ domains }) {
         {s.total > 0 && s.correct === s.incorrect && (
           <p>
             <strong>
-              Empate: {s.correct} correctas y {s.incorrect} incorrectas.
+              Empate: {s.correct} correcta{pl} y {s.incorrect} incorrecta{pl}.
             </strong>
           </p>
         )}
@@ -186,13 +212,8 @@ export default function Game({ domains }) {
 
   const s = score(answers);
   const domain = domains.find((d) => d.id === q.domainId);
-  const status = !feedback
-    ? `Pregunta ${index + 1} de ${deck.length}: ${plain(q.question)}`
-    : feedback.isCorrect
-      ? `Correcto. ${plain(q.explanation)}`
-      : `Incorrecto. La correcta era: ${plain(q.correct)}. ${plain(q.explanation)}`;
 
-  return (
+  return shell(
     <article className="game">
       <h1 ref={titleRef} tabIndex={-1}>
         Juego de cards
@@ -203,7 +224,7 @@ export default function Game({ domains }) {
       <p className="note">
         Dominio {domain.number} · {domain.title}
       </p>
-      <GameCard question={q} feedback={feedback} onAnswer={answer} />
+      <GameCard key={q.id} question={q} feedback={feedback} onAnswer={answer} />
       {feedback && (
         <div className={`game-feedback ${feedback.isCorrect ? "is-correct" : "is-incorrect"}`}>
           <strong>{feedback.isCorrect ? "✓ Correcto" : "✗ Incorrecto"}</strong>
@@ -212,13 +233,15 @@ export default function Game({ domains }) {
           </p>
         </div>
       )}
-      <p className="sr-only" role="status">
-        {status}
-      </p>
       <div className="game-actions">
         <button type="button" className="button" onClick={finish}>
           Terminar
         </button>
+        {feedback && (
+          <button type="button" className="button button-primary" autoFocus onClick={next}>
+            {index + 1 < deck.length ? "Siguiente →" : "Ver resultados"}
+          </button>
+        )}
       </div>
     </article>
   );

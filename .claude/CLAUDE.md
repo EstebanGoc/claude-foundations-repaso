@@ -20,7 +20,7 @@ analyzer -> manager(setup) -> implementer -> validator -> reviewer -> manager(wr
 ## Trabajo activo
 
 <!-- PERSONALIZAR: la iniciativa o feature en curso, con un link a su plan. -->
-Ninguno. Web de repaso CCDV-F entregada (ver Resuelto). Proyecto **sin git** por decisión del usuario.
+Ninguno. Web de repaso CCDV-F entregada (ver Resuelto). Proyecto **sin git** por decisión del usuario (hay `.gitignore` listo por si se sube).
 
 ## Pendientes
 
@@ -38,8 +38,8 @@ un archivo aparte. Un hallazgo fuera de alcance de una tarea termina aquí. -->
 | 7 | Contenido D5 (data/domains.js:313 y :341): misma generalización "modelos nuevos" que se corrigió en el glosario (budget_tokens / tool_choice / temperature dependen del modelo o de anthropic-version) | Bajo | Alto (exactitud) | Resuelto (fix-exactitud-contenido) |
 | 8 | Glosario "breaking changes" (data/glossary.js:58): decir "Fable 5.1+" para tool_choice, no "Fable" | Bajo | Bajo | Resuelto (fix-exactitud-contenido) |
 | 9 | Nits del review de glosario-tooltips (Term.jsx, src/glossary.js, glossary.js:22/34/76): ver tasks/glosario-tooltips/review.md | Bajo | Bajo | Abierto |
-| 10 | Juego: dejar la región `role="status"` montada en las 3 fases para que se anuncie la 1.ª pregunta (Game.jsx:215-217) | Bajo | Medio (a11y) | Abierto (juego-cards-qa) |
-| 11 | Nits del juego: arrastre que sobrevive al avance por teclado, "1 correctas" (plural), aspecto de botones durante feedback, `Code` exportado desde GameCard.jsx | Bajo | Bajo | Abierto |
+| 10 | Juego: dejar la región `role="status"` montada en las 3 fases para que se anuncie la 1.ª pregunta (Game.jsx:215-217) | Bajo | Medio (a11y) | Resuelto (avance-manual-juego) |
+| 11 | Nits del juego: arrastre que sobrevive al avance por teclado, "1 correctas" (plural), aspecto de botones durante feedback, `Code` exportado desde GameCard.jsx | Bajo | Bajo | Parcial: plural y arrastre resueltos (avance-manual-juego); quedan aspecto de botones y `Code` exportado |
 | 12 | Preguntas casi duplicadas: reemplazar d2-11 (≈d3-29), d1-23 (≈d6-21) y d6-24 (≈d8-16) con los textos ya propuestos en tasks/mas-preguntas/review-1.md y review-2.md | Bajo | Medio | Resuelto (reemplazar-casi-duplicados) |
 | 13 | Nits de fuentes en preguntas: d2-29 (cita G, es domains.js), d2-11 explicación (context rot es de 03), d5-12 ("La guía dice" con source GEN), d8-30 (spec MCP 2025-06-18 vs 2026-07-28) | Bajo | Bajo | Abierto |
 
@@ -55,6 +55,7 @@ desde dev, una variable que falta, una herramienta que no está instalada. -->
 ## Resuelto
 
 <!-- Una línea por ítem cerrado, con el commit o PR. -->
+- 2026-11-24 -- avance-manual-juego: el feedback del juego espera al usuario (botón Siguiente / Enter); cierra #10 y parte de #11.
 - 2026-11-18 -- reemplazar-casi-duplicados (carril 1): d1-23, d2-11, d6-24 reescritas; cierra pendiente #12.
 - 2026-11-17 -- mas-preguntas: banco del juego de 60 a 240 preguntas (30 por dominio), sin git.
 - 2026-11-17 -- juego-cards-qa: sección Juego de cards con 60 preguntas (#/juego), sin git.

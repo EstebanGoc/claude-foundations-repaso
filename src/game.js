@@ -1,6 +1,5 @@
 // Lógica pura del juego de cards (sin JSX ni imports: la importa también scripts/check-data.mjs).
 
-export const FEEDBACK_MS = 1200;
 export const SWIPE_THRESHOLD = 80; // px de arrastre horizontal para responder
 
 // Fisher–Yates sobre una copia (no muta la entrada).
